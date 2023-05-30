@@ -1,13 +1,13 @@
 #include <Adafruit_GPS.h>
 #include <Wire.h>
-#include <SparkFun_Seven_Segment.h>
 
 // Create GPS module object
 Adafruit_GPS GPS(&Serial1);
-SevenSegmentDisplay display(XXX); // Replace XXX with the I2C address of your S7S Display
 
 #define GPSECHO false
 #define GPSRATE 10
+
+#define DISPLAY_ADDRESS 0x71 // Replace with your actual I2C address
 
 double lastLatitude = 0.0;
 double lastLongitude = 0.0;
@@ -15,8 +15,7 @@ double totalDistance = 0.0;
 
 void setup() {
   Serial.begin(115200);
-  display.begin();
-  display.setBrightness(90);
+  Wire.begin();
   
   // Initialize GPS module
   GPS.begin(9600);
@@ -68,6 +67,10 @@ double calculateHaversineDistance(double lat1, double lon1, double lat2, double 
 }
 
 void updateDisplay() {
-  display.clear();
-  display.print(totalDistance, 1); // Print total distance with 1 decimal place
+  char displayData[5];
+  sprintf(displayData, "%04.1f", totalDistance); // Convert the floating point number to a string with one decimal place
+
+  Wire.beginTransmission(DISPLAY_ADDRESS);
+  Wire.write(displayData, 4);
+  Wire.endTransmission();
 }
